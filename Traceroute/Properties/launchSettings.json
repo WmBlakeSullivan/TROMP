@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Traceroute": {
-      "commandName": "Project",
-      "commandLineArgs": "pinterest.com"
-    }
-  }
-}
