@@ -56,9 +56,21 @@ namespace Traceroute
             ///get target hostname
             string hostname = args[0];
 
+            IPAddress[] addressList = null;
+            try
+            {
+                addressList = Dns.GetHostAddresses(hostname);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to resolve hostname");
+                Environment.Exit(2);
+            }
+
+
             ///print out host addresses found
             Console.WriteLine(hostname + " addresses\n");
-            IPAddress[] addressList = Dns.GetHostAddresses(hostname);
+
             IPAddress hostv4 = null;
             IPAddress hostv6 = null;
 
@@ -84,7 +96,7 @@ namespace Traceroute
             ///perform IPv4 traceroute if able
             if (localv4 != null && hostv4 != null)
             {
-                Console.WriteLine("Can perform IPv4 Traceroute");
+                Console.WriteLine("Performing IPv4 Traceroute to " + hostname + " [" + hostv4.ToString() + "]");
                 performTraceroute(hostv4);
             }
 
@@ -93,7 +105,7 @@ namespace Traceroute
             ///perform IPv6 traceroute if able
             if (localv6 != null && hostv6 != null)
             {
-                Console.WriteLine("Can perform IPv6 Traceroute");
+                Console.WriteLine("Performing IPv6 Traceroute to " + hostname + " [" + hostv6.ToString() + "]");
                 performTraceroute(hostv6);
             }
         }
@@ -107,9 +119,7 @@ namespace Traceroute
             ///Ping object created for pinging the host
             Ping tr = new Ping();
 
-            ///tracks the consecutive timeouts of traceroute
-            ///after 3 consecutive timeouts, the current traceroute will cancel
-            int timeouts = 0;
+            
             for (int i = 1; i <= 30; i++)
             {
                 ///sets the time-to-live, or hop limit, of the Ping
@@ -121,7 +131,7 @@ namespace Traceroute
                 IPAddress pingAddress = null;
 
                 ///tracks the number of missed packets in a single hop test of the traceroute
-                ///if there are 5 consecutive timed-out packets sent, this counts as a timeout for the <code>timeouts</code> int
+                ///if there are 3 consecutive timed-out packets sent, this counts as a timeout
                 int retries = 0;
                 for (int j = 0; j < 3; j++)
                 {
@@ -131,7 +141,7 @@ namespace Traceroute
                     ms.Start();
 
                     ///send the Ping, wait for PingReply
-                    pr = tr.Send(target, 6000, new byte[52], po);
+                    pr = tr.Send(target, 5000, new byte[52], po);
 
                     ///this gives us the roundtrip time to the particular node
                     ms.Stop();
@@ -139,7 +149,6 @@ namespace Traceroute
                     ///this means the Ping did not time out
                     if (pr.Status == IPStatus.TtlExpired || pr.Status == IPStatus.Success)
                     {
-                        timeouts = 0;
                         Console.Write(ms.ElapsedMilliseconds + "ms\t");
                         if (pingAddress == null)
                             pingAddress = pr.Address;
@@ -153,14 +162,6 @@ namespace Traceroute
                 if (retries == 3)
                 {
                     Console.WriteLine("Request timeout.");
-                    timeouts++;
-
-                    ///traceroute had 5 consecutive tiemouts, stopping traceroute
-                    if (timeouts == 5)
-                    {
-                        Console.WriteLine("5 consecutive timeouts, stopping traceroute.");
-                        break;
-                    }
                     continue;
                 }
 
