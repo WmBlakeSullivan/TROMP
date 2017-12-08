@@ -121,7 +121,7 @@ namespace Traceroute
                 IPAddress pingAddress = null;
 
                 ///tracks the number of missed packets in a single hop test of the traceroute
-                ///if there are 3 consecutive timed-out packets sent, this counts as a timeout for the <code>timeouts</code> int
+                ///if there are 5 consecutive timed-out packets sent, this counts as a timeout for the <code>timeouts</code> int
                 int retries = 0;
                 for (int j = 0; j < 3; j++)
                 {
@@ -155,10 +155,10 @@ namespace Traceroute
                     Console.WriteLine("Request timeout.");
                     timeouts++;
 
-                    ///traceroute had 3 consecutive tiemouts, stopping traceroute
-                    if (timeouts == 3)
+                    ///traceroute had 5 consecutive tiemouts, stopping traceroute
+                    if (timeouts == 5)
                     {
-                        Console.WriteLine("3 consecutive timeouts, stopping traceroute.");
+                        Console.WriteLine("5 consecutive timeouts, stopping traceroute.");
                         break;
                     }
                     continue;
